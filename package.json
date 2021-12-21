@@ -1,0 +1,31 @@
+{
+  "name": "grepolisbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "SET Node_ENV=development & nodemon app",
+    "start": "SET Node_ENV=production & app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christsironis/GrepolisBot.git"
+  },
+  "keywords": [
+    "grepolis",
+    "bot"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christsironis/GrepolisBot/issues"
+  },
+  "homepage": "https://github.com/christsironis/GrepolisBot#readme",
+  "dependencies": {
+    "node-fetch": "^2.6.6"
+  },
+  "devDependencies": {
+    "dotenv": "^10.0.0",
+    "nodemon": "^2.0.15"
+  }
+}
