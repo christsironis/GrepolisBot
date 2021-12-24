@@ -26,9 +26,6 @@ async function Login() {
 		let portalData = "portal_data=" + portalId;
 		let metricsUvId = "metricsUvId=" + MetricsUvId() + ";";
 		let login_startup_time;
-		let worlds = [];
-		let tid;
-		let farm_towns = [];
 		let phpsessid ;
 		let xsrftoken;
 		let h_Token;
@@ -37,6 +34,10 @@ async function Login() {
 		let pid;
 		let ts;
 		let username="tsiochris0001%40yahoo.gr",password="abcdefghik";
+		let worlds = [];
+		let tid;
+		let townInfo=[];
+		let farm_towns = [];
 
 		let firstCookies = await FetchData("https://gr.grepolis.com/", {
 			headers: {
@@ -171,7 +172,7 @@ async function Login() {
 		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
 		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi)
 
-		let town_data = await FetchData(`https://${worlds[1].id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",1,
+		let town_data = await FetchData(`https://${worlds[1].id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",0,
 			{
 				headers: {
 					accept: "text/plain, */*; q=0.01",
@@ -192,13 +193,53 @@ async function Login() {
 		);
 
 		town_data = town_data.data["json"];
+		farm_towns = searchObject(town_data, "farm_town_id");
+		townInfo = searchObject(town_data, "model_class_name", "Town");
+		console.log(townInfo,farm_towns);
 
-		searchObject(town_data, farm_towns);
-		console.log(farm_towns);
+		// for(farm of farm_towns){
+		// 	let claim = await FetchData(`https://${worlds[1].id}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`, "json",2,{
+		// 		"headers": {
+		// 		  "accept": "text/plain, */*; q=0.01",
+		// 		  "accept-language": "en,el;q=0.9",
+		// 		  "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+		// 		  "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"96\", \"Google Chrome\";v=\"96\"",
+		// 		  "sec-ch-ua-mobile": "?0",
+		// 		  "sec-ch-ua-platform": "\"Windows\"",
+		// 		  "sec-fetch-dest": "empty",
+		// 		  "sec-fetch-mode": "cors",
+		// 		  "sec-fetch-site": "same-origin",
+		// 		  "x-requested-with": "XMLHttpRequest",
+		// 		  "cookie": `${metricsUvId} ${cid} ${sessId} toid=${tid}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
+		// 		  "Referer": "https://gr81.grepolis.com/game/index?login=1&p=848924721&ts=1639818973",
+		// 		  "Referrer-Policy": "strict-origin-when-cross-origin"
+		// 		},
+		// 		"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${farm.id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${farm.farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A1%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
+		// 		"method": "POST"
+		// 	  });
+		// }
 		
 	} catch (err) {
 		console.log("kati gia error leei:", err);
 	}
+}
+
+function searchObject(jsonData, propertyName, propertyValue) {
+	let result=[];
+	if (jsonData.hasOwnProperty(propertyName)) {
+		if(propertyValue && jsonData[propertyName] === propertyValue){
+			result.push(jsonData);
+		} else if(!propertyValue){
+			result.push(jsonData);
+		}
+	} else {
+		for (var prop in jsonData) {
+			if (jsonData[prop] instanceof Object) {
+				result = [ ...result, ...searchObject(jsonData[prop], propertyName, propertyValue) ];
+			}
+		}
+	}	
+	return result;
 }
 
 async function FetchData(url,type="none",debug=0,headers){
@@ -227,17 +268,6 @@ async function FetchData(url,type="none",debug=0,headers){
 		return {headers:request.headers, data:data ?? "no type has been set on FetchData function"};
 	} catch (err) {
 		console.log(`Fetch function error from url: ${url} \n`, err);
-	}
-}
-
-function searchObject(jsonData, table) {
-	for (var prop in jsonData) {
-		if (jsonData.hasOwnProperty("farm_town_id")) {
-			table.push(jsonData);
-			break;
-		} else if (jsonData[prop] instanceof Object) {
-			searchObject(jsonData[prop], table);
-		}
 	}
 }
 
