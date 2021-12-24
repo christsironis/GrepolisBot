@@ -26,7 +26,8 @@ async function Login() {
 		let portalData = "portal_data=" + portalId;
 		let metricsUvId = "metricsUvId=" + MetricsUvId() + ";";
 		let login_startup_time;
-		let myTowns = [];
+		let worlds = [];
+		let tid;
 		let farm_towns = [];
 		let phpsessid ;
 		let xsrftoken;
@@ -49,7 +50,7 @@ async function Login() {
 		phpsessid = firstCookies.headers.get("set-cookie").match(/phpsessid[^;]*;/i)[0];
 		xsrftoken = firstCookies.headers.get("set-cookie").match(/xsrf-token[^;]*;/i)[0];
 
-		let loginCheck = await FetchData("https://gr.grepolis.com/glps/login_check","noType",2,{
+		let loginCheck = await FetchData("https://gr.grepolis.com/glps/login_check","noType",0,{
 			headers: {
 				accept: "application/json, text/plain, */*",
 				"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -63,7 +64,7 @@ async function Login() {
 
 		phpsessid = loginCheck.headers.get("set-cookie").match(/phpsessid[^;]*;/i)[0];
 		
-		let grepolis = await FetchData(loginCheck.headers.get("location"), "text",2,{
+		let grepolis = await FetchData(loginCheck.headers.get("location"), "text",0,{
 			headers: {
 				"content-type": "text/html; charset=UTF-8",
 				accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -77,7 +78,7 @@ async function Login() {
 		xsrftoken = grepolis.headers.get("set-cookie").match(/xsrf-token[^;]*;/i)[0];
 		pid = grepolis.headers.get("location").match(/(?<=player_id=)[^&]*/i)[0];
 
-		let loginPlayer = await FetchData(grepolis.headers.get("location"),"noType",2,{
+		let loginPlayer = await FetchData(grepolis.headers.get("location"),"noType",0,{
 				headers: {
 					accept:	"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 					"accept-language": "en,el;q=0.9",
@@ -99,102 +100,101 @@ async function Login() {
 		phpsessid = loginPlayer.headers.get("set-cookie").match(/phpsessid[^;]*;/i)[0];
 		cid = loginPlayer.headers.get("set-cookie").match(/cid[^;]*;/i)[0];
 
-		// let index = await FetchData(loginPlayer.headers.get("location"), "text",0,{
-		// 	headers: {
-		// 		"content-type": "text/html; charset=UTF-8",
-		// 		accept:
-		// 			"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-		// 		cookie: `${phpsessid} ${cid} ${metricsUvId} ${pid};`,
-		// 	},
-		// 	body: null,
-		// 	method: "GET",
-		// });
-		// // console.log(index.data)
+		let index = await FetchData(loginPlayer.headers.get("location"), "text",0,{
+			headers: {
+				"content-type": "text/html; charset=UTF-8",
+				accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+				cookie: `${phpsessid} ${cid} ${metricsUvId} pid=${pid};`,
+			},
+			body: null,
+			method: "GET",
+			redirect: "manual"
+		});
 
-		// h_Token = index.data.match(/(?<=CSRF\.token = ["'])[^"']*/gim)[0];
-		// playerName = index.data.match(/(?<=Login.player_name = ["'])[^"']*/gim)[0];
-		// let dataTowns = index.data.match(/"id":"[^"]*","name":"[^"]*","playing_on":true/gim);
-		// for (let town of dataTowns) {
-		// 	myTowns.push(JSON.parse("{" + town + "}"));
-		// }
-		// console.log(h_Token,playerName,dataTowns,phpsessid)
+		h_Token = index.data.match(/(?<=CSRF\.token = ["'])[^"']*/gim)[0];
+		playerName = index.data.match(/(?<=Login.player_name = ["'])[^"']*/gim)[0];
+		let worldsData = index.data.match(/"id":"[^'"]*","name":"[^'"]*"(?=,"playing_on":true,)/gim);
+		for (let world of worldsData) {
+			worlds.push(JSON.parse("{" + world + "}"));
+		}
+		// console.log(worlds)
 
-		// let worldLogin = await FetchData("https://gr0.grepolis.com/start?action=login_to_game_world", {
-		// 	headers: {
-		// 		accept:	"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-		// 		"accept-language": "en",
-		// 		"cache-control": "max-age=0",
-		// 		"content-type": "application/x-www-form-urlencoded",
-		// 		"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
-		// 		"sec-ch-ua-mobile": "?0",
-		// 		"sec-ch-ua-platform": '"Windows"',
-		// 		"sec-fetch-dest": "document",
-		// 		"sec-fetch-mode": "navigate",
-		// 		"sec-fetch-site": "same-origin",
-		// 		"sec-fetch-user": "?1",
-		// 		"upgrade-insecure-requests": "1",
-		// 		cookie: `${phpsessid} ${cid} ${metricsUvId} ${pid};`,
-		// 		Referer: "https://gr0.grepolis.com/start/index",
-		// 		"Referrer-Policy": "strict-origin-when-cross-origin",
-		// 	},
-		// 	body: `world=${worldId}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
-		// 	method: "POST",
-		// 	redirect: "manual",
-		// });
+		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`, "noType",0,{
+			headers: {
+				accept:	"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+				"accept-language": "en",
+				"cache-control": "max-age=0",
+				"content-type": "application/x-www-form-urlencoded",
+				"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
+				"sec-ch-ua-mobile": "?0",
+				"sec-ch-ua-platform": '"Windows"',
+				"sec-fetch-dest": "document",
+				"sec-fetch-mode": "navigate",
+				"sec-fetch-site": "same-origin",
+				"sec-fetch-user": "?1",
+				"upgrade-insecure-requests": "1",
+				cookie: `${phpsessid} ${cid} ${metricsUvId} pid=${pid};`,
+				Referer: "https://gr0.grepolis.com/start/index",
+				"Referrer-Policy": "strict-origin-when-cross-origin",
+			},
+			body: `world=${worlds[1].id}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
+			method: "POST",
+			redirect: "manual",
+		});
 
-		// login_startup_time = worldLogin.headers.get("set-cookie").match(/(?<=login_startup_time=)[^%]*/gi)[0];
-		// sessId ="sid=" + worldLogin.headers.get("location").match(/(?<=session_id=)[^&]*/i)[0] + ";";
+		login_startup_time = worldLogin.headers.get("set-cookie").match(/(?<=login_startup_time=)[^%]*/gi)[0];
+		sessId ="sid=" + worldLogin.headers.get("location").match(/(?<=session_id=)[^&]*/i)[0] + ";";
 
-		// let session = await FetchData(worldLogin.headers.get("location"), {
-		// 	headers: {
-		// 		accept:
-		// 			"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-		// 		cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser`,
-		// 	},
-		// 	body: null,
-		// 	method: "GET",
-		// 	redirect: "manual",
-		// });
+		let session = await FetchData(worldLogin.headers.get("location"),"noType",0, {
+			headers: {
+				accept:
+					"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+				cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser`,
+			},
+			body: null,
+			method: "GET",
+			redirect: "manual",
+		});
 
-		// cid = session.headers.get("set-cookie").match(/cid[^;]*;/i)[0];
-		// ts = session.headers.get("location").match(/(?<=ts=).*/i)[0];
+		cid = session.headers.get("set-cookie").match(/cid[^;]*;/i)[0];
+		ts = session.headers.get("location").match(/(?<=ts=).*/i)[0];
 
-		// let worldIndex = await FetchData(session.headers.get("location"), "text", {
-		// 	headers: {
-		// 		accept:
-		// 			"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-		// 		cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser; ${cid} ${sessId} logged_in=false`,
-		// 	},
-		// 	body: null,
-		// 	method: "GET",
-		// });
+		let worldIndex = await FetchData(session.headers.get("location"), "text",0, {
+			headers: {
+				accept:	"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+				cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser; ${cid} ${sessId} logged_in=false`,
+			},
+			body: null,
+			method: "GET",
+		});
 
-		// h_Token = worldIndex.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
+		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
+		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi)
 
-		// let town_data = await FetchData(`https://${worldId}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",
-		// 	{
-		// 		headers: {
-		// 			accept: "text/plain, */*; q=0.01",
-		// 			"accept-language": "en,el;q=0.9",
-		// 			"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-		// 			"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
-		// 			"sec-ch-ua-mobile": "?0",
-		// 			"sec-ch-ua-platform": '"Windows"',
-		// 			"sec-fetch-dest": "empty",
-		// 			"sec-fetch-mode": "cors",
-		// 			"sec-fetch-site": "same-origin",
-		// 			"x-requested-with": "XMLHttpRequest",
-		// 			cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
-		// 		},
-		// 		body: "json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Afalse%7D",
-		// 		method: "POST",
-		// 	}
-		// );
+		let town_data = await FetchData(`https://${worlds[1].id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",1,
+			{
+				headers: {
+					accept: "text/plain, */*; q=0.01",
+					"accept-language": "en,el;q=0.9",
+					"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+					"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
+					"sec-ch-ua-mobile": "?0",
+					"sec-ch-ua-platform": '"Windows"',
+					"sec-fetch-dest": "empty",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					"x-requested-with": "XMLHttpRequest",
+					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
+				},
+				body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Afalse%7D`,
+				method: "POST",
+			}
+		);
 
-		// town_data = town_data["json"];
+		town_data = town_data.data["json"];
 
-		// searchObject(town_data, farm_towns);
-		// console.log(farm_towns);
+		searchObject(town_data, farm_towns);
+		console.log(farm_towns);
 		
 	} catch (err) {
 		console.log("kati gia error leei:", err);
@@ -217,10 +217,10 @@ async function FetchData(url,type="none",debug=0,headers){
 
 		switch (debug) {
 			case 1:
-				console.log(`url = ${request.url} \t ${request.statusText} ${request.status}`);
+				console.log(`url = ${request.url} \t response = ${request.statusText} ${request.status} \n`, request.headers);
 				break;
 			case 2:
-				console.log(`url = ${request.url} \t ${request.statusText} ${request.status} \n`, request.headers);
+				console.log(`data = \n ${JSON.stringify(data) ?? "no data"}`);
 				break;
 		}
 
