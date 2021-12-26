@@ -22,7 +22,12 @@
   },
   "homepage": "https://github.com/christsironis/GrepolisBot#readme",
   "dependencies": {
-    "node-fetch": "^2.6.6"
+    "bcrypt": "^5.0.1",
+    "express": "^4.17.2",
+    "express-handlebars": "^6.0.2",
+    "ioredis": "^4.28.2",
+    "node-fetch": "^2.6.6",
+    "redis-json": "^6.0.2"
   },
   "devDependencies": {
     "dotenv": "^10.0.0",

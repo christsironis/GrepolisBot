@@ -1,0 +1,16 @@
+{{#section "stylesheets"}}
+	<link rel="stylesheet" href={{css}} />
+
+{{/section}}
+{{#if status}} <div>{{status}}</div>{{/if}}
+  <div class="login-container">
+    <form action="/auth/register" method="post">
+      <input type="text" placeholder="Username" name="username">
+      <input type="password" placeholder="Password" name="psw">
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+{{#section 'scripts'}}
+<script src={{js}}></script>
+{{/section}}
