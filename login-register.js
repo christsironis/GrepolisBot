@@ -32,10 +32,21 @@ async function authenticate(req, res, next) {
 		return;
 	}
 	let login = await Login(username,psw);
-	let plr = await PlayerLogin(login);
-	res.locals.userInfo={...userInfo ,...await WorldLogin(plr,{id:"gr81"})}
+	let playerInfo = await PlayerLogin(login);
+	let tablePromises=[];
+	for(world of userInfo.worlds){
+		let data = await WorldLogin(playerInfo,world);
+		// console.log(data)
+		if(data.error){ continue; }
+		userInfo= {...userInfo, ...data};
+		// tablePromises.push(data);	
+	}
+	// let allProm = await Promise.all(tablePromises);
+	RedisSet(username,userInfo);
+	res.locals.userInfo=userInfo;
 	console.log("user logged in");
-	next();
+	res.render("main.hbs");
+	// next();
 }
 
 async function register(req, res, next){
@@ -61,8 +72,8 @@ async function register(req, res, next){
 	}
 	let hash = await bcrypt.hash(psw, 10);
 	playerLogin.psw= hash;
-	let storeData = await RedisSet(username,playerLogin);
-	res.locals.status = storeData;
+	let storeData = RedisSet(username,playerLogin);
+	res.locals.status = "successful registration";
 	next(); 
 }
 

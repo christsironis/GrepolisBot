@@ -1,5 +1,6 @@
 const express = require('express');
 const exphbs = require('express-handlebars');
+const session = require('express-session');
 const {router,authRouter} = require("./routes.js");
 
 if (process.env.NODE_ENV !== "production") {
@@ -30,5 +31,3 @@ app.use('/', router);
 let port = process.env.PORT || '3000';
 
 app.listen(port, console.log("Listening to port " + port));
-
-// Login();

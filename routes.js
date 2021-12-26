@@ -21,6 +21,9 @@ authRouter.route("/register").post(register,function (req, res) {
     res.send(res.locals.status)
 })
 
+router.route("/").get(function (req,res){
+    res.render("main.hbs");
+})
 
 
 

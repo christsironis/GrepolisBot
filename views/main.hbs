@@ -1,0 +1,92 @@
+{{#section "stylesheets"}}
+	<link rel="stylesheet" href={{css}} />
+<style>
+* {box-sizing: border-box}
+
+/* Set height of body and the document to 100% */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: Arial;
+}
+
+/* Style tab links */
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 25%;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+/* Style the tab content (and add height:100% for full page content) */
+.tabcontent {
+  color: rgb(0, 0, 0);
+ 
+  padding: 100px 20px;
+  height: 100%;
+}
+</style>
+{{/section}}
+
+{{#with userInfo}}
+  <h1>{{playerName}}</h1>
+
+
+  {{#each worlds}}
+    {{#with this}}
+      <button class="tablink" onclick="openPage({{name}}, this, 'red')">{{name}}</button>
+    {{/with}}
+  {{/each}}
+
+  {{#each towns}}
+    <div id={{@key}} class="tabcontent">
+
+    {{#each this}}
+
+      <h3>{{town_data/name}}</h3>
+      <label for="claim">Choose a claim option:</label>
+
+      <select id="claim">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+
+    {{/each}}
+    </div>
+  {{/each}}
+
+{{/with}}
+<button>apply</button>
+<script>
+function openPage(pageName,elmnt,color) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].style.backgroundColor = "";
+  }
+  document.getElementById(pageName).style.display = "block";
+  {{!-- elmnt.style.backgroundColor = color; --}}
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+
+{{#section 'scripts'}}
+<script src={{js}}></script>
+{{/section}}
