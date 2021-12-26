@@ -3,9 +3,9 @@ const JSONCache = require("redis-json");
 const bcrypt = require("bcrypt");
 const process = require("process");
 const { Login, PlayerLogin, WorldLogin } = require("./grep_login");
-// if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== "production") {
 	require("dotenv").config();
-// }
+}
 module.exports = { authenticate, register };
 
 const redis = new Redis({
