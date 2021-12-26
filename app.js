@@ -2,9 +2,9 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const {router,authRouter} = require("./routes.js");
 
-if (process.env.NODE_ENV !== "production") {
+// if (process.env.NODE_ENV !== "production") {
 	require("dotenv").config();
-}
+// }
 
 const app = express();
 
