@@ -1,7 +1,7 @@
 const express = require("express");
 const exphbs = require("express-handlebars");
 const session = require("express-session");
-const { router, authRouter } = require("./Routes.js");
+const { router } = require("./Routes.js");
 const { Repeater } = require("./repeater.js");
 
 if (process.env.NODE_ENV !== "production") {
