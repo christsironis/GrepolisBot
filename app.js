@@ -2,7 +2,6 @@ const express = require("express");
 const exphbs = require("express-handlebars");
 const session = require("express-session");
 const { router } = require("./Routes.js");
-const { Repeater } = require("./repeater.js");
 
 if (process.env.NODE_ENV !== "production") {
 	require("dotenv").config();

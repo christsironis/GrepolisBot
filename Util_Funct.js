@@ -1,6 +1,6 @@
 const { Login, PlayerLogin, WorldLogin } = require("./Grep_Funct");
 const { RedisGet, RedisSet } = require("./Redis_Funct");
-// const fs = require('fs');
+const { Refresh } = require("./Repeater_Funct.js");
 
 module.exports = { authenticate, setAutomation };
 
@@ -80,16 +80,13 @@ async function setAutomation(req, res, next){
 			alreadyEx[username]= req.body[username];
 		}
 		await RedisSet("jobs", alreadyEx );
+		Refresh();
 		res.status(200).json({status:"success"});
 	}catch(err){
 		console.log(err);
 	}
 }
-async function GetAllKeys(){
-	let data = await RedisGetAll();
-	console.log(data)
-}
-// GetAllKeys();
+
 async function saveJson(data){
 	try {
 		let a =  JSON.stringify(data);
