@@ -140,7 +140,7 @@ async function WorldLogin(data,currentWorld) {
 		let towns={};
 
 
-		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	1,
+		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	0,
 			{
 				headers: {
 					accept:
@@ -160,7 +160,7 @@ async function WorldLogin(data,currentWorld) {
 					Referer: "https://gr0.grepolis.com/start/index",
 					"Referrer-Policy": "strict-origin-when-cross-origin",
 				},
-				body: `world=${currentWorld}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
+				body: `world=${currentWorld.id}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
 				method: "POST",
 				redirect: "manual",
 			}
@@ -197,7 +197,7 @@ async function WorldLogin(data,currentWorld) {
 		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi)[0];
 
 		let town_data = await FetchData(
-			`https://${currentWorld}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",	0,
+			`https://${currentWorld.id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",	0,
 			{
 				headers: {
 					accept: "text/plain, */*; q=0.01",
@@ -210,7 +210,7 @@ async function WorldLogin(data,currentWorld) {
 					"sec-fetch-mode": "cors",
 					"sec-fetch-site": "same-origin",
 					"x-requested-with": "XMLHttpRequest",
-					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://${currentWorld}.grepolis.com/game/index;`,
+					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://${currentWorld.id}.grepolis.com/game/index;`,
 				},
 				body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Afalse%7D`,
 				method: "POST",
@@ -218,12 +218,12 @@ async function WorldLogin(data,currentWorld) {
 		);
 
 		town_data = town_data.data["json"];
-		towns= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
+		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
 
 		let townsIds= searchObject(town_data, "model_class_name", "TownIdList")[0]["data"]["town_ids"];
 		townsIds = townsIds.filter( id => id != tid );
 		for( let town_id of townsIds){
-			let townInfo =  await FetchData(`https://${currentWorld}.grepolis.com/game/data?town_id=${town_id}&action=get&h=${h_Token}`, "json",	0,
+			let townInfo =  await FetchData(`https://${currentWorld.id}.grepolis.com/game/data?town_id=${town_id}&action=get&h=${h_Token}`, "json",	0,
 				{headers: {
 						accept: "text/plain, */*; q=0.01",
 						"accept-language": "en,el;q=0.9",
@@ -235,12 +235,12 @@ async function WorldLogin(data,currentWorld) {
 						"sec-fetch-mode": "cors",
 						"sec-fetch-site": "same-origin",
 						"x-requested-with": "XMLHttpRequest",
-						cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${town_id}; logged_in=false; ig_conv_last_site=https://${currentWorld}.grepolis.com/game/index;`,
+						cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${town_id}; logged_in=false; ig_conv_last_site=https://${currentWorld.id}.grepolis.com/game/index;`,
 					},
 					body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${town_id}%2C%22nl_init%22%3Afalse%7D`,
 					method: "POST",
 			});
-			towns={ ...towns, ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
+			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
 		}
 
 		return towns;

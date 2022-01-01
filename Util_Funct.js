@@ -7,7 +7,8 @@ module.exports = { authenticate, setAutomation };
 async function authenticate(req, res, next) {
 	let username = req.body.username;
 	let psw = req.body.psw;
-	let redisData/*  = await RedisGet("jobs"); */
+	let redisData = await RedisGet("jobs");
+	console.log(redisData);
 	redisData = redisData?.[username];
 	let grepUser = await Login(username,psw);
 	if(grepUser.error){
@@ -22,7 +23,6 @@ async function authenticate(req, res, next) {
 		return;
 	}
 	
-	console.log(redisData)
 	for(let worldId of userInfo.worlds){
 		let townsForWorld = await WorldLogin(userInfo,worldId);
 		if(townsForWorld.error) {continue;}
@@ -54,12 +54,12 @@ async function setAutomation(req, res, next){
 		let username=Object.keys(req.body)[0];
 		let worldId=Object.keys(req.body[username].towns)[0];
 		let townId=Object.keys(req.body[username].towns[worldId])[0];
-		let alreadyEx = await RedisGet("jobs");
+		let alreadyEx = await RedisGet("jobs") ?? {};
 		// console.log(alreadyEx)
 		// alreadyEx = alreadyEx?.[username];
 		
 		if(alreadyEx?.[username]){
-			console.log("alreadyEx= ",alreadyEx[username])
+			console.log("alreadyEx= ",alreadyEx?.[username])
 			if( !req.body[username].towns[worldId][townId].activeForAll ){
 				if(Object.keys(alreadyEx[username].towns[worldId]).length == 1){
 					delete alreadyEx[username].towns[worldId];
@@ -74,12 +74,12 @@ async function setAutomation(req, res, next){
 				alreadyEx[username].towns[worldId]= { ...alreadyEx[username].towns[worldId], ...req.body[username].towns[worldId] }
 				console.log("deuterh periptwsh = ",alreadyEx[username]);
 			}
-			await RedisSet("jobs", alreadyEx );
 		} 
 		else{
 			console.log(req.body[username]);
-			await RedisSet("jobs",{ [username]: req.body[username] } );
+			alreadyEx[username]= req.body[username];
 		}
+		await RedisSet("jobs", alreadyEx );
 		res.status(200).json({status:"success"});
 	}catch(err){
 		console.log(err);
