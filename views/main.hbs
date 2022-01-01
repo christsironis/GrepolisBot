@@ -12,17 +12,24 @@ body, html {
 
 /* Style tab links */
 .tablink {
-  background-color: #555;
-  color: white;
-  float: left;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  padding: 14px 16px;
-  font-size: 17px;
-  width: 25%;
+background-color: #555;
+    color: white;
+    cursor: pointer;
+    padding: 14px 16px;
+    font-size: 17px;
+    width: 25%;
+    margin-right: 10px;
 }
-
+#tabs{
+  display: flex;
+  flex-direction: row;
+}
+#delay{
+  margin-right: 15px;
+}
+label[for="delay"]{
+  margin-left: 15px;
+}
 .tablink:hover {
   background-color: #777;
 }
@@ -38,38 +45,44 @@ body, html {
 {{/section}}
 
 {{#with userInfo}}
-  <h1>{{playerName}}</h1>
+  <h1 psw="{{psw}}" username="{{username}}">{{playerName}}</h1>
 
 
+  <div id="tabs">
   {{#each worlds}}
-    {{#with this}}
-      <button class="tablink" onclick="openPage({{name}}, this, 'red')">{{name}}</button>
-    {{/with}}
+    <button class="tablink" onclick="openPage('{{id}}',this)">{{name}}</button>
   {{/each}}
+  </div>
 
   {{#each towns}}
     <div id={{@key}} class="tabcontent">
-
     {{#each this}}
-
+    <div class="town">
       <h3>{{town_data/name}}</h3>
       <label for="claim">Choose a claim option:</label>
-
       <select id="claim">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
+        <option {{#ifEquals optionForAll 1}}selected{{/ifEquals}} value="1">1</option>
+        <option {{#ifEquals optionForAll 2}}selected{{/ifEquals}} value="2">2</option>
+        <option {{#ifEquals optionForAll 3}}selected{{/ifEquals}} value="3">3</option>
+        <option {{#ifEquals optionForAll 4}}selected{{/ifEquals}} value="4">4</option>
       </select>
-
+      <label for="delay">Delay claim for </label>
+      <input type="number" name="delay" id="delay" min="0" max="36000" {{#if extraTime}}value="{{extraTime}}"{{/if}} placeholder=" seconds">
+      <label for="active">Active: <input type="checkbox" id="active" name="active" {{#if activeForAll}}checked{{/if}}></label>
+      <button town_id="{{@key}}" onclick="submition(this);">Apply</button>
+    </div>
     {{/each}}
     </div>
   {{/each}}
 
 {{/with}}
-<button>apply</button>
+
 <script>
-function openPage(pageName,elmnt,color) {
+
+let data ={{#json }}userInfo{{/json}}
+data=data.data.root._locals.userInfo;
+
+function openPage(pageName,elmnt) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tabcontent");
   for (i = 0; i < tabcontent.length; i++) {
@@ -80,11 +93,36 @@ function openPage(pageName,elmnt,color) {
     tablinks[i].style.backgroundColor = "";
   }
   document.getElementById(pageName).style.display = "block";
-  {{!-- elmnt.style.backgroundColor = color; --}}
+  elmnt.style.backgroundColor = "black";
 }
 
-// Get the element with id="defaultOpen" and click on it
-document.getElementById("defaultOpen").click();
+document.querySelector(".tablink").click();
+
+async function submition(button){
+  let username = data.username;
+  let psw = data.psw;
+  let towns = data.towns;
+  let world = button.parentNode.parentNode.id;
+  let tid= button.getAttribute("town_id");
+  let town= towns[world][tid];
+  console.log(typeof(world),typeof(tid))
+  town.optionForAll= document.querySelector("#"+world+" select#claim").value;
+  town.activeForAll= button.parentNode.querySelector("#active").checked;
+  town.extraTime= button.parentNode.querySelector("#delay").value || 0;
+  console.log({[username]:{username: username,psw:psw, towns: { [world]: { [tid]:town } } } })
+
+  fetch("/automation",{
+    headers: {   'Content-Type': 'application/json'   },
+    method:"POST",
+    body: await JSON.stringify({[username]:{username: username,psw:psw, towns: { [world]: { [tid]:town } } } })
+  }).then(response => response.json()).then(data => {
+    let span = document.createElement("span");
+    span.innerHTML =  data.status;
+    button.parentNode.appendChild(span);
+  });
+  
+
+}
 </script>
 
 {{#section 'scripts'}}

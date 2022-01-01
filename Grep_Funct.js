@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 
-module.exports = { Login,PlayerLogin,WorldLogin};
+module.exports = { Login, PlayerLogin, WorldLogin, Farming };
 
 async function Login(username,psw) {
 	try {
@@ -55,7 +55,7 @@ async function Login(username,psw) {
 		pid = grepolis.headers.get("location").match(/(?<=player_id=)[^&]*/i)[0];
 		hash = grepolis.headers.get("location").match(/(?<=hash=).*/i)[0];
 
-		return {redirect: grepolis.headers.get("location"), metricsUvId : metricsUvId, phpsessid : phpsessid, xsrftoken : xsrftoken, pid : pid, hash: hash}
+		return {redirect: grepolis.headers.get("location"), metricsUvId : metricsUvId, phpsessid : phpsessid, xsrftoken : xsrftoken, pid : pid, hash: hash, username: username, psw: psw}
 	
 	} catch (err) {
 		console.log("kati gia error leei:", err);
@@ -117,7 +117,7 @@ async function PlayerLogin(data) {
 		}
 		// console.log(worlds)
 
-		return { metricsUvId : metricsUvId,playerName: playerName, phpsessid : phpsessid, xsrftoken : xsrftoken, h_Token : h_Token, cid : cid, pid : pid, hash: hash, worlds: worlds}
+		return { metricsUvId : metricsUvId, playerName: playerName, phpsessid : phpsessid, xsrftoken : xsrftoken, h_Token : h_Token, cid : cid, pid : pid, hash: hash, worlds: worlds}
 	
 	} catch (err) {
 		console.log("kati gia error leei:", err);
@@ -194,7 +194,7 @@ async function WorldLogin(data,currentWorld) {
 		});
 
 		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
-		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi);
+		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi)[0];
 
 		let town_data = await FetchData(
 			`https://${currentWorld.id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",	0,
@@ -218,10 +218,10 @@ async function WorldLogin(data,currentWorld) {
 		);
 
 		town_data = town_data.data["json"];
-		towns[currentWorld.id]= [{tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"] ,optioForAll: 0, activeForAll: false}];
+		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
 
-		let townsIds= searchObject(town_data, "model_class_name", "TownIdList")[0];
-		townsIds = townsIds["data"]["town_ids"].filter( id => id !== tid );
+		let townsIds= searchObject(town_data, "model_class_name", "TownIdList")[0]["data"]["town_ids"];
+		townsIds = townsIds.filter( id => id != tid );
 		for( let town_id of townsIds){
 			let townInfo =  await FetchData(`https://${currentWorld.id}.grepolis.com/game/data?town_id=${town_id}&action=get&h=${h_Token}`, "json",	0,
 				{headers: {
@@ -240,10 +240,10 @@ async function WorldLogin(data,currentWorld) {
 					body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${town_id}%2C%22nl_init%22%3Afalse%7D`,
 					method: "POST",
 			});
-			towns[currentWorld.id].push({tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"], optioForAll: 0, activeForAll: false});		
+			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
 		}
-		
-		return {towns: towns};
+
+		return towns;
 
 	} catch (err) {
 		console.log("kati gia error leei:", err);
@@ -252,128 +252,39 @@ async function WorldLogin(data,currentWorld) {
 }
 
 
-async function WorldLogin2(data,currentWorld) {
+async function Farming(data,currentWorld,town) {
 	try {
 		let metricsUvId=data.metricsUvId;
 		let login_startup_time=data.login_startup_time;
-		let phpsessid=data.phpsessid;
 		let h_Token=data.h_Token;
-		let playerName=data.playerName;
 		let cid=data.cid;
 		let pid=data.pid;
-		let hash= data.hash;
 		let ts=data.ts;
-		let tid;
-		let townInfo;
-		let farm_towns;
+		let sessId=data.sessId
+		let tid= town.tid;
 
-
-		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	0,
-			{
-				headers: {
-					accept:
-						"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-					"accept-language": "en",
-					"cache-control": "max-age=0",
-					"content-type": "application/x-www-form-urlencoded",
-					"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
-					"sec-ch-ua-mobile": "?0",
-					"sec-ch-ua-platform": '"Windows"',
-					"sec-fetch-dest": "document",
-					"sec-fetch-mode": "navigate",
-					"sec-fetch-site": "same-origin",
-					"sec-fetch-user": "?1",
-					"upgrade-insecure-requests": "1",
-					cookie: `${phpsessid} ${cid} ${metricsUvId} pid=${pid};`,
-					Referer: "https://gr0.grepolis.com/start/index",
-					"Referrer-Policy": "strict-origin-when-cross-origin",
+		for( let farm of town.farms){
+			let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`, {
+				"headers": {
+				"accept": "text/plain, */*; q=0.01",
+				"accept-language": "en,el;q=0.9",
+				"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+				"sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"96\", \"Google Chrome\";v=\"96\"",
+				"sec-ch-ua-mobile": "?0",
+				"sec-ch-ua-platform": "\"Windows\"",
+				"sec-fetch-dest": "empty",
+				"sec-fetch-mode": "cors",
+				"sec-fetch-site": "same-origin",
+				"x-requested-with": "XMLHttpRequest",
+				"cookie": `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://${currentWorld}.grepolis.com/game/index;`,
+				"Referer": `https://${currentWorld}.grepolis.com/game/index?login=1&p=${pid}&ts=${ts}`,
+				"Referrer-Policy": "strict-origin-when-cross-origin"
 				},
-				body: `world=${currentWorld.id}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
-				method: "POST",
-				redirect: "manual",
-			}
-		);
+				"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${farm.id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${farm.farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
+				"method": "POST"
+			});
+		}
 
-		login_startup_time = worldLogin.headers.get("set-cookie").match(/(?<=login_startup_time=)[^%]*/gi)[0];
-		sessId = "sid=" + worldLogin.headers.get("location").match(/(?<=session_id=)[^&]*/i)[0] + ";";
-
-		let session = await FetchData(worldLogin.headers.get("location"), "noType", 0, {
-			headers: {
-				accept:
-					"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-				cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser`,
-			},
-			body: null,
-			method: "GET",
-			redirect: "manual",
-		});
-
-		cid = session.headers.get("set-cookie").match(/cid[^;]*;/i)[0];
-		ts = session.headers.get("location").match(/(?<=ts=).*/i)[0];
-
-		let worldIndex = await FetchData(session.headers.get("location"), "text", 0, {
-			headers: {
-				accept:
-					"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-				cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser; ${cid} ${sessId} logged_in=false`,
-			},
-			body: null,
-			method: "GET",
-		});
-
-		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
-		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi);
-
-		let town_data = await FetchData(
-			`https://${currentWorld.id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`,
-			"json",
-			0,
-			{
-				headers: {
-					accept: "text/plain, */*; q=0.01",
-					"accept-language": "en,el;q=0.9",
-					"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-					"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
-					"sec-ch-ua-mobile": "?0",
-					"sec-ch-ua-platform": '"Windows"',
-					"sec-fetch-dest": "empty",
-					"sec-fetch-mode": "cors",
-					"sec-fetch-site": "same-origin",
-					"x-requested-with": "XMLHttpRequest",
-					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
-				},
-				body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Afalse%7D`,
-				method: "POST",
-			}
-		);
-
-		town_data = town_data.data["json"];
-		farm_towns = searchObject(town_data, "farm_town_id");
-		townInfo = searchObject(town_data, "model_class_name", "Town");
-		// console.log(worlds);
-		return townInfo;
-
-		// for(farm of farm_towns){
-		// 	let claim = await FetchData(`https://${currentWorld.id}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`, "json",2,{
-		// 		"headers": {
-		// 		  "accept": "text/plain, */*; q=0.01",
-		// 		  "accept-language": "en,el;q=0.9",
-		// 		  "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-		// 		  "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"96\", \"Google Chrome\";v=\"96\"",
-		// 		  "sec-ch-ua-mobile": "?0",
-		// 		  "sec-ch-ua-platform": "\"Windows\"",
-		// 		  "sec-fetch-dest": "empty",
-		// 		  "sec-fetch-mode": "cors",
-		// 		  "sec-fetch-site": "same-origin",
-		// 		  "x-requested-with": "XMLHttpRequest",
-		// 		  "cookie": `${metricsUvId} ${cid} ${sessId} toid=${tid}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
-		// 		  "Referer": "https://gr81.grepolis.com/game/index?login=1&p=848924721&ts=1639818973",
-		// 		  "Referrer-Policy": "strict-origin-when-cross-origin"
-		// 		},
-		// 		"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${farm.id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${farm.farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A1%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
-		// 		"method": "POST"
-		// 	  });
-		// }
 	} catch (err) {
 		console.log("kati gia error leei:", err);
 		return {error:err}
