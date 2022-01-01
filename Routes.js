@@ -19,7 +19,7 @@ router.route("/login").post(authenticate,function (req, res) {
 router.route("/automation").post(setAutomation);
 
 
-router.route("/").get(function (req,res){
+router.route("/").get(authenticate,function (req,res){
     res.render("main.hbs");
 })
 

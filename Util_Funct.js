@@ -5,6 +5,10 @@ const { Refresh } = require("./Repeater_Funct.js");
 module.exports = { authenticate, setAutomation };
 
 async function authenticate(req, res, next) {
+	if(!req.body.username){
+		res.render("login.hbs"); 
+		return;
+	}
 	let username = req.body.username;
 	let psw = req.body.psw;
 	let redisData = await RedisGet("jobs");
