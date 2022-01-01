@@ -1,6 +1,6 @@
 const { Login, PlayerLogin, WorldLogin } = require("./Grep_Funct");
 const { RedisGet, RedisSet } = require("./Redis_Funct");
-const fs = require('fs');
+// const fs = require('fs');
 
 module.exports = { authenticate, setAutomation };
 
