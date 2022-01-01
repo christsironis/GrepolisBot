@@ -7,8 +7,8 @@ module.exports = { authenticate, setAutomation };
 async function authenticate(req, res, next) {
 	let username = req.body.username;
 	let psw = req.body.psw;
-	let redisData = await RedisGet("jobs");
-	redisData = redisData?.[username] ;
+	let redisData/*  = await RedisGet("jobs"); */
+	redisData = redisData?.[username];
 	let grepUser = await Login(username,psw);
 	if(grepUser.error){
 		res.locals.status="The email or password is wrong try again using your Grepolis account email and password";

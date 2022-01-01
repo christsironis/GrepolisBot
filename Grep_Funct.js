@@ -128,7 +128,7 @@ async function PlayerLogin(data) {
 async function WorldLogin(data,currentWorld) {
 	try {
 		let metricsUvId=data.metricsUvId;
-		let login_startup_time=data.login_startup_time;
+		let login_startup_time;
 		let phpsessid=data.phpsessid;
 		let h_Token=data.h_Token;
 		let playerName=data.playerName;
@@ -140,7 +140,7 @@ async function WorldLogin(data,currentWorld) {
 		let towns={};
 
 
-		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	0,
+		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	1,
 			{
 				headers: {
 					accept:
@@ -160,7 +160,7 @@ async function WorldLogin(data,currentWorld) {
 					Referer: "https://gr0.grepolis.com/start/index",
 					"Referrer-Policy": "strict-origin-when-cross-origin",
 				},
-				body: `world=${currentWorld.id}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
+				body: `world=${currentWorld}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
 				method: "POST",
 				redirect: "manual",
 			}
@@ -197,7 +197,7 @@ async function WorldLogin(data,currentWorld) {
 		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi)[0];
 
 		let town_data = await FetchData(
-			`https://${currentWorld.id}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",	0,
+			`https://${currentWorld}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",	0,
 			{
 				headers: {
 					accept: "text/plain, */*; q=0.01",
@@ -210,7 +210,7 @@ async function WorldLogin(data,currentWorld) {
 					"sec-fetch-mode": "cors",
 					"sec-fetch-site": "same-origin",
 					"x-requested-with": "XMLHttpRequest",
-					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
+					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://${currentWorld}.grepolis.com/game/index;`,
 				},
 				body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Afalse%7D`,
 				method: "POST",
@@ -218,12 +218,12 @@ async function WorldLogin(data,currentWorld) {
 		);
 
 		town_data = town_data.data["json"];
-		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
+		towns= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
 
 		let townsIds= searchObject(town_data, "model_class_name", "TownIdList")[0]["data"]["town_ids"];
 		townsIds = townsIds.filter( id => id != tid );
 		for( let town_id of townsIds){
-			let townInfo =  await FetchData(`https://${currentWorld.id}.grepolis.com/game/data?town_id=${town_id}&action=get&h=${h_Token}`, "json",	0,
+			let townInfo =  await FetchData(`https://${currentWorld}.grepolis.com/game/data?town_id=${town_id}&action=get&h=${h_Token}`, "json",	0,
 				{headers: {
 						accept: "text/plain, */*; q=0.01",
 						"accept-language": "en,el;q=0.9",
@@ -235,12 +235,12 @@ async function WorldLogin(data,currentWorld) {
 						"sec-fetch-mode": "cors",
 						"sec-fetch-site": "same-origin",
 						"x-requested-with": "XMLHttpRequest",
-						cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${town_id}; logged_in=false; ig_conv_last_site=https://gr81.grepolis.com/game/index;`,
+						cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${town_id}; logged_in=false; ig_conv_last_site=https://${currentWorld}.grepolis.com/game/index;`,
 					},
 					body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${town_id}%2C%22nl_init%22%3Afalse%7D`,
 					method: "POST",
 			});
-			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
+			towns={ ...towns, ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
 		}
 
 		return towns;
@@ -255,16 +255,73 @@ async function WorldLogin(data,currentWorld) {
 async function Farming(data,currentWorld,town) {
 	try {
 		let metricsUvId=data.metricsUvId;
-		let login_startup_time=data.login_startup_time;
+		let phpsessid=data.phpsessid;
+		let playerName=data.playerName;
 		let h_Token=data.h_Token;
 		let cid=data.cid;
 		let pid=data.pid;
-		let ts=data.ts;
-		let sessId=data.sessId
+		let login_startup_time;
+		let ts;
+		let sessId;
 		let tid= town.tid;
+		
+		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	0,
+			{
+				headers: {
+					accept:
+						"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+					"accept-language": "en",
+					"cache-control": "max-age=0",
+					"content-type": "application/x-www-form-urlencoded",
+					"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
+					"sec-ch-ua-mobile": "?0",
+					"sec-ch-ua-platform": '"Windows"',
+					"sec-fetch-dest": "document",
+					"sec-fetch-mode": "navigate",
+					"sec-fetch-site": "same-origin",
+					"sec-fetch-user": "?1",
+					"upgrade-insecure-requests": "1",
+					cookie: `${phpsessid} ${cid} ${metricsUvId} pid=${pid};`,
+					Referer: "https://gr0.grepolis.com/start/index",
+					"Referrer-Policy": "strict-origin-when-cross-origin",
+				},
+				body: `world=${currentWorld}&facebook_session=&facebook_login=&token=${h_Token}&portal_sid=&name=${playerName}&password=`,
+				method: "POST",
+				redirect: "manual",
+			}
+		);
 
-		for( let farm of town.farms){
-			let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`, {
+		login_startup_time = worldLogin.headers.get("set-cookie").match(/(?<=login_startup_time=)[^%]*/gi)[0];
+		sessId = "sid=" + worldLogin.headers.get("location").match(/(?<=session_id=)[^&]*/i)[0] + ";";
+
+		let session = await FetchData(worldLogin.headers.get("location"), "noType", 0, {
+			headers: {
+				accept:
+					"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+				cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser`,
+			},
+			body: null,
+			method: "GET",
+			redirect: "manual",
+		});
+
+		cid = session.headers.get("set-cookie").match(/cid[^;]*;/i)[0];
+		ts = session.headers.get("location").match(/(?<=ts=).*/i)[0];
+
+		let worldIndex = await FetchData(session.headers.get("location"), "text", 0, {
+			headers: {
+				accept:
+					"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+				cookie: `${metricsUvId} login_startup_time=${login_startup_time}%2C0%2Cbrowser; ${cid} ${sessId} logged_in=false`,
+			},
+			body: null,
+			method: "GET",
+		});
+
+		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
+
+		for( let farm in town.farms){
+			let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json",	2, {
 				"headers": {
 				"accept": "text/plain, */*; q=0.01",
 				"accept-language": "en,el;q=0.9",
@@ -280,9 +337,10 @@ async function Farming(data,currentWorld,town) {
 				"Referer": `https://${currentWorld}.grepolis.com/game/index?login=1&p=${pid}&ts=${ts}`,
 				"Referrer-Policy": "strict-origin-when-cross-origin"
 				},
-				"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${farm.id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${farm.farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
+				"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${town.farms[farm].id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${town.farms[farm].farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
 				"method": "POST"
 			});
+			// console.log(farming)
 		}
 
 	} catch (err) {
@@ -332,6 +390,7 @@ async function FetchData(url, type = "none", debug = 0, headers) {
 				break;
 			case 2:
 				console.log(`data = \n ${JSON.stringify(data) ?? "no data"}`);
+				console.log(data.json.notifications[1].param_str.match(/(?<="lootable_at\":)[^,]*/gi)[0])
 				break;
 		}
 
