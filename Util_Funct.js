@@ -80,7 +80,7 @@ async function setAutomation(req, res, next){
 			alreadyEx[username]= req.body[username];
 		}
 		await RedisSet("jobs", alreadyEx );
-		Refresh();
+		Refresh(username);
 		res.status(200).json({status:"success"});
 	}catch(err){
 		console.log(err);

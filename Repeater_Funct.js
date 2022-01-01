@@ -43,7 +43,8 @@ async function Repeater(){
     }
 }
 
-async function Refresh(){
+async function Refresh(user){
     data = await RedisGet("jobs");
     console.log(data);
+    RepeaterSpecific(user);
 }
