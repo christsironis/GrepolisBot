@@ -17,7 +17,7 @@ async function RepeaterSpecific(user,world,city){
 
     let nextFarm = claimData.nextFarm;
     console.log("nextFarm - now= "+ (nextFarm - new Date().getTime()),"now= " +new Date(),"nextFarm= "+new Date(nextFarm));   
-    setTimeout( RepeaterSpecific,nextFarm - new Date().getTime() + 1000 + data[user].towns[world][city].extraTime * 1000, user,world,city );
+    setTimeout( RepeaterSpecific, nextFarm - new Date().getTime() + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  , user,world,city );
 }
 
 async function Repeater(){
@@ -33,7 +33,7 @@ async function Repeater(){
                 let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
                 let nextFarm = claimData.nextFarm;
                 console.log("nextFarm - now= "+ (nextFarm - new Date().getTime()),"now= " +new Date(),"nextFarm= "+new Date(nextFarm));
-                setTimeout( RepeaterSpecific,nextFarm - new Date().getTime() + 1000 + data[user].towns[world][city].extraTime * 1000, user,world,city );
+                setTimeout( RepeaterSpecific, nextFarm - new Date().getTime() + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  , user, world, city );
             }
         }
     }
