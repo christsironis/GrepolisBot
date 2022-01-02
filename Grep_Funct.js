@@ -264,7 +264,7 @@ async function Farming(data,currentWorld,town) {
 		let ts;
 		let sessId;
 		let tid= town.tid;
-		let farming;
+		let nextFarm;
 		
 		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	0,
 			{
@@ -322,7 +322,7 @@ async function Farming(data,currentWorld,town) {
 		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
 
 		for( let farm in town.farms){
-			farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json",	2, {
+			let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json",	2, {
 				"headers": {
 				"accept": "text/plain, */*; q=0.01",
 				"accept-language": "en,el;q=0.9",
@@ -341,8 +341,10 @@ async function Farming(data,currentWorld,town) {
 				"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${town.farms[farm].id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${town.farms[farm].farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
 				"method": "POST"
 			});
+
+			nextFarm = nextFarm || (farming.data.json.notifications?.[1]?.param_str.match?.(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000) || Number(login_startup_time) + 300000;
 		}
-		return {data: farming.data, login_startup_time:login_startup_time}
+		return {nextFarm: nextFarm}
 	} catch (err) {
 		console.log("kati gia error leei:", err);
 		return {error:err}

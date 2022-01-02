@@ -15,8 +15,8 @@ async function RepeaterSpecific(user,world,city){
     // console.log(data[user].towns[world][city].farms[0]);
     let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
 
-    let nextFarm = (claimData.data.json.notifications?.[1].param_str.match(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000) || Number(claimData.login_startup_time) + 300000;
-    console.log(nextFarm - new Date().getTime(),new Date(),new Date(nextFarm));   
+    let nextFarm = claimData.nextFarm;
+    console.log("nextFarm - now= "+ (nextFarm - new Date().getTime()),"now= " +new Date(),"nextFarm= "+new Date(nextFarm));   
     setTimeout( RepeaterSpecific,nextFarm - new Date().getTime() + 1000 + data[user].towns[world][city].extraTime * 1000, user,world,city );
 }
 
@@ -29,10 +29,10 @@ async function Repeater(){
         let playerLogin = await PlayerLogin(login);
         for( let world in data[user].towns){
             for(let city in data[user].towns[world]){
-                console.log(data[user].towns[world][city].farms[0]);
+                // console.log(data[user].towns[world][city].farms[0]);
                 let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
-                let nextFarm = (claimData.data.json.notifications?.[1].param_str.match(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000) || Number(claimData.login_startup_time) + 300000;
-                console.log(nextFarm - new Date().getTime(),new Date(nextFarm));   
+                let nextFarm = claimData.nextFarm;
+                console.log("nextFarm - now= "+ (nextFarm - new Date().getTime()),"now= " +new Date(),"nextFarm= "+new Date(nextFarm));
                 setTimeout( RepeaterSpecific,nextFarm - new Date().getTime() + 1000 + data[user].towns[world][city].extraTime * 1000, user,world,city );
             }
         }
