@@ -44,5 +44,6 @@ function exitRedis(){
 }
 
 process.on('exit', ()=>{
+	exitRedis();
 	console.log(`Quit redis and exit `);
 })
