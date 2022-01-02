@@ -8,7 +8,7 @@ let data;
 Repeater();
 
 async function RepeaterSpecific(user,world,city){
-    if(!Object.keys(data[user]).length){ return; }
+    if(!data?.[user]?.towns?.[world]){ return; }
 
     let login = await Login(data[user].username,data[user].psw);
     let playerLogin = await PlayerLogin(login);
@@ -23,7 +23,7 @@ async function RepeaterSpecific(user,world,city){
 async function Repeater(){
     data = await RedisGet("jobs");
     console.log(data);
-    if(!Object.keys(data).length){ return; }
+    if(!Object.keys(data ?? 0).length){ return; }
     for(let user in data){
         let login = await Login(data[user].username,data[user].psw);
         let playerLogin = await PlayerLogin(login);
