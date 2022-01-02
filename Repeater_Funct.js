@@ -40,9 +40,9 @@ async function Repeater(){
 }
 
 async function Refresh(user,world,city ){
+    data = await RedisGet("jobs");
+    console.log(data);
     if(data?.[user]?.towns?.[world][city]){
         RepeaterSpecific( user,world,city );
     }
-    data = await RedisGet("jobs");
-    console.log(data);
 }

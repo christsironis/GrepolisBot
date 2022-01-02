@@ -81,7 +81,9 @@ async function setAutomation(req, res, next){
 		} 
 		else{
 			console.log(req.body[username]);
-			alreadyEx[username]= req.body[username];
+			if(req.body[username].towns[worldId][townId].activeForAll){
+				alreadyEx[username]= req.body[username];
+			}
 		}
 		await RedisSet("jobs", alreadyEx );
 		Refresh( username, worldId, townId);
