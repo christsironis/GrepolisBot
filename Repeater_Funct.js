@@ -39,9 +39,13 @@ async function Repeater(){
 }
 
 async function Refresh(user,world,city ){
+    let exists=false;
+    if(data?.[user]?.towns?.[world][city]){
+       exists = true;
+    }
     data = await RedisGet("jobs");
     console.log(data);
-    if(data?.[user]?.towns?.[world][city]){
+    if( !exists && data?.[user]?.towns?.[world][city]){
         RepeaterSpecific( user,world,city );
     }
 }
