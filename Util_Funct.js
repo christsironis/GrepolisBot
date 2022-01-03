@@ -9,7 +9,7 @@ async function authenticate(req, res, next) {
 		res.render("login.hbs"); 
 		return;
 	}
-	let username = req.body.username;
+	let username = req.body.username.toLowerCase();
 	let psw = req.body.psw;
 	let redisData = await RedisGet("jobs");
 	console.log(redisData);
