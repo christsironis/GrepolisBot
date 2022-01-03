@@ -15,7 +15,6 @@ async function RepeaterSpecific(user,world,city){
     // console.log(data[user].towns[world][city].farms[0]);
     let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
     let nextFarm = claimData.nextFarm - new Date().getTime();
-    nextFarm > 0 ? null : nextFarm = 0 ; 
     nextFarm = nextFarm + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
     console.log("now= " +new Date(),"nextFarm= " + new Date(new Date().getTime() + nextFarm));   
     setTimeout( RepeaterSpecific, nextFarm, user,world,city );
@@ -33,7 +32,6 @@ async function Begginer(){
             for(let city in data[user].towns[world]){
                 let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
                 let nextFarm = claimData.nextFarm - new Date().getTime();
-                nextFarm > 0 ? null : nextFarm = 0 ; 
                 nextFarm = nextFarm + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
                 console.log("now= " +new Date(),"nextFarm= " + new Date(new Date().getTime() + nextFarm));
                 setTimeout( RepeaterSpecific, nextFarm, user, world, city );

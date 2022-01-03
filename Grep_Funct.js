@@ -356,9 +356,8 @@ async function Farming(data,currentWorld,town) {
 
 		if( wood < storage || stone < storage || iron < storage  ){
 			for( let farm in townData.farms){
-				nextFarm = (townData.farms?.[farm]?.lootable_at * 1000) || nextFarm;
-				console.log(` lootable at = ${nextFarm}`);
-				if( (nextFarm - new Date().getTime()) < 0){
+				let farmTime = townData.farms?.[farm]?.lootable_at * 1000;
+				if( (farmTime - new Date().getTime()) < 0){
 					let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json", 2, {
 						"headers": {
 						"accept": "text/plain, */*; q=0.01",
@@ -378,6 +377,8 @@ async function Farming(data,currentWorld,town) {
 						"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${townData.farms[farm].id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${townData.farms[farm].farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
 						"method": "POST"
 					});
+					nextFarm = nextFarm || (farming.data.json.notifications?.[1]?.param_str.match?.(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000);
+					console.log(` lootable at = ${nextFarm}`);
 				}
 			}
 		} else { 
