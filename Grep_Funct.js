@@ -240,7 +240,7 @@ async function WorldLogin(data,currentWorld) {
 					body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${town_id}%2C%22nl_init%22%3Afalse%7D`,
 					method: "POST",
 			});
-			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id")/* , town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"] */}};		
+			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
 		}
 
 		return towns;
