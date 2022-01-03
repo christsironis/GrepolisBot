@@ -321,7 +321,7 @@ async function Farming(data,currentWorld,town) {
 
 		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
 		if( town.town_data.resources.wood < town.town_data.storage || town.town_data.resources.stone < town.town_data.storage || town.town_data.resources.iron < town.town_data.storage  ){
-			console.log(town.town_data.resources.wood)
+			console.log(town.town_data)
 for( let farm in town.farms){
 				let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json", 2, {
 					"headers": {
