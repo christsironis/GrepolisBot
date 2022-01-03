@@ -348,12 +348,13 @@ async function Farming(data,currentWorld,town) {
 		townData= { farms: searchObject(getTownData, "farm_town_id"), town_data: searchObject(getTownData, "model_class_name", "Town")[0]["data"]};
 
 		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
+		let storage = townData.town_data.storage;
 		let wood = townData.town_data.resources.wood + Math.floor( townData.town_data.production.wood * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
 		let stone = townData.town_data.resources.stone + Math.floor( townData.town_data.production.stone * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
 		let iron = townData.town_data.resources.iron + Math.floor( townData.town_data.production.iron * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
-		console.log(`\n current wood= ${wood} \n current stone= ${stone} \n current iron= ${iron}`) 
+		console.log(`\n current wood= ${wood > storage ? "Full:"+storage : wood} \n current stone= ${stone > storage ? "Full:"+storage : stone} \n current iron= ${iron > storage ? "Full:"+storage : iron}`) 
 
-		if( wood < townData.town_data.storage || stone < townData.town_data.storage || iron < townData.town_data.storage  ){
+		if( wood < storage || stone < storage || iron < storage  ){
 			for( let farm in townData.farms){
 				let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json", 2, {
 					"headers": {

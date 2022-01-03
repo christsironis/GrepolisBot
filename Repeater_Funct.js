@@ -5,7 +5,7 @@ module.exports={ Refresh };
 
 let data;
 
-Repeater();
+Begginer();
 
 async function RepeaterSpecific(user,world,city){
     if(!data?.[user]?.towns?.[world]){ return; }
@@ -19,7 +19,7 @@ async function RepeaterSpecific(user,world,city){
     setTimeout( RepeaterSpecific, nextFarm, user,world,city );
 }
 
-async function Repeater(){
+async function Begginer(){
     data = await RedisGet("jobs");
     console.log(data);
     if(!Object.keys(data ?? 0).length){ return; }
