@@ -357,7 +357,7 @@ async function Farming(data,currentWorld,town) {
 		if( wood < storage || stone < storage || iron < storage  ){
 			for( let farm in townData.farms){
 				nextFarm = (townData.farms?.[farm]?.lootable_at * 1000) || nextFarm;
-				console.log(`\n lootable at = ${nextFarm}\n`);
+				console.log(` lootable at = ${nextFarm}`);
 				if( (nextFarm - new Date().getTime()) < 0){
 					let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json", 2, {
 						"headers": {
