@@ -218,7 +218,7 @@ async function WorldLogin(data,currentWorld) {
 		);
 
 		town_data = town_data.data["json"];
-		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
+		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id")/* , town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"] */}};
 
 		let townsIds= searchObject(town_data, "model_class_name", "TownIdList")[0]["data"]["town_ids"];
 		townsIds = townsIds.filter( id => id != tid );
@@ -240,7 +240,7 @@ async function WorldLogin(data,currentWorld) {
 					body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${town_id}%2C%22nl_init%22%3Afalse%7D`,
 					method: "POST",
 			});
-			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id"), town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"]}};		
+			towns[currentWorld.id]={ ...towns[currentWorld.id], ["t"+town_id]: { tid: town_id, farms: searchObject(townInfo, "farm_town_id")/* , town_data: searchObject(townInfo, "model_class_name", "Town")[0]["data"] */}};		
 		}
 
 		return towns;
@@ -265,6 +265,7 @@ async function Farming(data,currentWorld,town) {
 		let sessId;
 		let tid= town.tid;
 		let nextFarm;
+		let townData={};
 		
 		let worldLogin = await FetchData(`https://gr0.grepolis.com/start?action=login_to_game_world`,"noType",	0,
 			{
@@ -320,13 +321,40 @@ async function Farming(data,currentWorld,town) {
 		});
 
 		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
-		let wood = town.town_data.resources.wood + Math.floor( town.town_data.production.wood * ( (new Date().getTime() - new Date(town.town_data.resources_last_update*1000)) / 3600000 ) );
-		let stone = town.town_data.resources.stone + Math.floor( town.town_data.production.stone * ( (new Date().getTime() - new Date(town.town_data.resources_last_update*1000)) / 3600000 ) );
-		let iron = town.town_data.resources.iron + Math.floor( town.town_data.production.iron * ( (new Date().getTime() - new Date(town.town_data.resources_last_update*1000)) / 3600000 ) );
+		tid = worldIndex.headers.get("set-cookie").match(/(?<=toid=)[^;]*/gi)[0];
+
+		let getTownData = await FetchData(
+			`https://${currentWorld}.grepolis.com/game/data?town_id=${tid}&action=get&h=${h_Token}`, "json",	0,
+			{
+				headers: {
+					accept: "text/plain, */*; q=0.01",
+					"accept-language": "en,el;q=0.9",
+					"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+					"sec-ch-ua": '" Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"',
+					"sec-ch-ua-mobile": "?0",
+					"sec-ch-ua-platform": '"Windows"',
+					"sec-fetch-dest": "empty",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					"x-requested-with": "XMLHttpRequest",
+					cookie: `${metricsUvId} ${cid} ${sessId} login_startup_time=${login_startup_time}%2C0%2Cbrowser toid=${tid}; logged_in=false; ig_conv_last_site=https://${currentWorld}.grepolis.com/game/index;`,
+				},
+				body: `json=%7B%22types%22%3A%5B%7B%22type%22%3A%22easterIngredients%22%7D%2C%7B%22type%22%3A%22map%22%2C%22param%22%3A%7B%22x%22%3A15%2C%22y%22%3A6%7D%7D%2C%7B%22type%22%3A%22bar%22%7D%2C%7B%22type%22%3A%22backbone%22%7D%5D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Afalse%7D`,
+				method: "POST",
+			}
+		);
+
+		getTownData = getTownData.data["json"];
+		townData= { farms: searchObject(getTownData, "farm_town_id"), town_data: searchObject(getTownData, "model_class_name", "Town")[0]["data"]};
+
+		h_Token = worldIndex.data.match(/(?<=csrfToken":['"])[^"']*/gim)[0];
+		let wood = townData.town_data.resources.wood + Math.floor( townData.town_data.production.wood * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
+		let stone = townData.town_data.resources.stone + Math.floor( townData.town_data.production.stone * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
+		let iron = townData.town_data.resources.iron + Math.floor( townData.town_data.production.iron * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
 		console.log(`\n current wood= ${wood} \n current stone= ${stone} \n current iron= ${iron}`) 
 
-		if( wood < town.town_data.storage || stone < town.town_data.storage || iron < town.town_data.storage  ){
-			for( let farm in town.farms){
+		if( wood < townData.town_data.storage || stone < townData.town_data.storage || iron < townData.town_data.storage  ){
+			for( let farm in townData.farms){
 				let farming = await FetchData(`https://${currentWorld}.grepolis.com/game/frontend_bridge?town_id=${tid}&action=execute&h=${h_Token}`,"json", 2, {
 					"headers": {
 					"accept": "text/plain, */*; q=0.01",
@@ -343,7 +371,7 @@ async function Farming(data,currentWorld,town) {
 					"Referer": `https://${currentWorld}.grepolis.com/game/index?login=1&p=${pid}&ts=${ts}`,
 					"Referrer-Policy": "strict-origin-when-cross-origin"
 					},
-					"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${town.farms[farm].id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${town.farms[farm].farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
+					"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${townData.farms[farm].id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${townData.farms[farm].farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
 					"method": "POST"
 				});
 				nextFarm = nextFarm || (farming.data.json.notifications?.[1]?.param_str.match?.(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000);
@@ -352,6 +380,7 @@ async function Farming(data,currentWorld,town) {
 			console.log("\n City storage is full. \n"); 
 			nextFarm = nextFarm || Number(login_startup_time) + 3600000;
 		}
+
 		nextFarm = nextFarm || Number(login_startup_time) + 300000;
 		return {nextFarm: nextFarm}
 	} catch (err) {
