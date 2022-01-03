@@ -218,7 +218,7 @@ async function WorldLogin(data,currentWorld) {
 		);
 
 		town_data = town_data.data["json"];
-		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id")/* , town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"] */}};
+		towns[currentWorld.id]= {["t"+tid]: { tid: tid, farms: searchObject(town_data, "farm_town_id"), town_data: searchObject(town_data, "model_class_name", "Town")[0]["data"]}};
 
 		let townsIds= searchObject(town_data, "model_class_name", "TownIdList")[0]["data"]["town_ids"];
 		townsIds = townsIds.filter( id => id != tid );
