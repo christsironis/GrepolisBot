@@ -382,7 +382,7 @@ async function Farming(data,currentWorld,town) {
 			}
 		} else { 
 			console.log("\n City storage is full. \n"); 
-			nextFarm = nextFarm || Number(login_startup_time) + 3600000;
+			nextFarm = Number(login_startup_time) + 3600000;
 		}
 
 		nextFarm = nextFarm || Number(login_startup_time) + 300000;
