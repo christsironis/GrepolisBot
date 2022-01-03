@@ -352,7 +352,7 @@ async function Farming(data,currentWorld,town) {
 		let wood = townData.town_data.resources.wood + Math.floor( townData.town_data.production.wood * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
 		let stone = townData.town_data.resources.stone + Math.floor( townData.town_data.production.stone * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
 		let iron = townData.town_data.resources.iron + Math.floor( townData.town_data.production.iron * ( (new Date().getTime() - new Date(townData.town_data.resources_last_update*1000)) / 3600000 ) );
-		console.log(`\n current wood= ${wood > storage ? "Full:"+storage : wood} \n current stone= ${stone > storage ? "Full:"+storage : stone} \n current iron= ${iron > storage ? "Full:"+storage : iron}`) 
+		console.log(`\n Town = ${townData.town_data.name} \n current wood= ${wood > storage ? "Full:"+storage : wood} \n current stone= ${stone > storage ? "Full:"+storage : stone} \n current iron= ${iron > storage ? "Full:"+storage : iron}`) 
 
 		if( wood < storage || stone < storage || iron < storage  ){
 			for( let farm in townData.farms){
@@ -377,7 +377,6 @@ async function Farming(data,currentWorld,town) {
 						"body": `json=%7B%22model_url%22%3A%22FarmTownPlayerRelation%2F${townData.farms[farm].id}%22%2C%22action_name%22%3A%22claim%22%2C%22arguments%22%3A%7B%22farm_town_id%22%3A${townData.farms[farm].farm_town_id}%2C%22type%22%3A%22resources%22%2C%22option%22%3A${town.optionForAll}%7D%2C%22town_id%22%3A${tid}%2C%22nl_init%22%3Atrue%7D`,
 						"method": "POST"
 					});
-					// nextFarm = nextFarm || (farming.data.json.notifications?.[1]?.param_str.match?.(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000);
 				}
 			}
 		} else { 
