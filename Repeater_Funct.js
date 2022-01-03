@@ -13,7 +13,7 @@ async function RepeaterSpecific(user,world,city){
     let login = await Login(data[user].username,data[user].psw);
     let playerLogin = await PlayerLogin(login);
     // console.log(data[user].towns[world][city].farms[0]);
-    let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
+    let claimData=await Farming(playerLogin,world,playerLogin[world][city]);
 
     let nextFarm = claimData.nextFarm;
     console.log("nextFarm - now= "+ (nextFarm - new Date().getTime()),"now= " +new Date(),"nextFarm= "+new Date(nextFarm));   
