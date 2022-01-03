@@ -379,7 +379,9 @@ async function Farming(data,currentWorld,town) {
 					});
 					nextFarm = nextFarm || (farming.data.json.notifications?.[1]?.param_str.match?.(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000);
 					console.log(` lootable at = ${nextFarm}`);
-				}
+				} else {
+nextFarm = nextFarm || farmTime;
+}
 			}
 		} else { 
 			console.log("\n City storage is full. \n"); 
