@@ -1,6 +1,5 @@
 const express = require("express");
 const exphbs = require("express-handlebars");
-const session = require("express-session");
 const { router } = require("./Routes.js");
 
 if (process.env.NODE_ENV !== "production") {
@@ -9,8 +8,7 @@ if (process.env.NODE_ENV !== "production") {
 
 const app = express();
 
-app.engine(
-	"hbs",
+app.engine("hbs",
 	exphbs.engine({
 		defaultLayout: "layout",
 		extname: "hbs",

@@ -5,21 +5,21 @@ module.exports={ Refresh };
 
 let data;
 
-Begginer();
-
+// Begginer();
+// it is being called by Begginer or when someone activates a new automation for a city
 async function RepeaterSpecific(user,world,city){
     if(!data?.[user]?.towns?.[world]){ return; }
 
     let login = await Login(data[user].username,data[user].psw);
     let playerLogin = await PlayerLogin(login);
-    // console.log(data[user].towns[world][city].farms[0]);
     let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
+
     let nextFarm = claimData.nextFarm - new Date().getTime();
     nextFarm = nextFarm + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
     console.log("now= " +new Date(),"nextFarm= " + new Date(new Date().getTime() + nextFarm));   
     setTimeout( RepeaterSpecific, nextFarm, user,world,city );
 }
-
+// runs once when the server starts and then sets a timeout to run RepeaterSpecific for each city of each user
 async function Begginer(){
     data = await RedisGet("jobs");
     console.log(data);

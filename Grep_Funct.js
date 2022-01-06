@@ -13,7 +13,7 @@ async function Login(username,psw) {
 		let pid;
 		let hash;
 
-		let firstCookies = await FetchData("https://gr.grepolis.com/", {
+		let firstCookies = await FetchData("https://gr.grepolis.com/", "noType", 0, {
 			headers: {
 				accept: "application/json, text/plain, */*",
 				"content-type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -378,11 +378,11 @@ async function Farming(data,currentWorld,town) {
 						"method": "POST"
 					});
 					nextFarm = nextFarm || (farming.data.json.notifications?.[1]?.param_str.match?.(/(?<="lootable_at\":)[^,]*/gi)[0] * 1000);
-					console.log(` lootable at = ${nextFarm}`);
 				} else {
-nextFarm = nextFarm || farmTime;
-}
+					nextFarm = nextFarm || farmTime;
+				}
 			}
+			console.log(` lootable at = ${nextFarm}`);
 		} else { 
 			console.log("\n City storage is full. \n"); 
 			nextFarm = Number(login_startup_time) + 3600000;
@@ -430,10 +430,7 @@ async function FetchData(url, type = "none", debug = 0, headers) {
 
 		switch (debug) {
 			case 1:
-				console.log(
-					`url = ${request.url} \t response = ${request.statusText} ${request.status} \n`,
-					request.headers
-				);
+				console.log(`url = ${request.url} \t response = ${request.statusText} ${request.status} \n`,request.headers	);
 				break;
 			case 2:
 				console.log(`data = \n ${JSON.stringify(data) ?? "no data"}`);
