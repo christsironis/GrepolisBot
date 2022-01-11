@@ -5,7 +5,7 @@ module.exports={ Refresh };
 
 let data;
 
-// Begginer();
+Begginer();
 // it is being called by Begginer or when someone activates a new automation for a city
 async function RepeaterSpecific(user,world,city){
     if(!data?.[user]?.towns?.[world]){ return; }
