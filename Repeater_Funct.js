@@ -6,6 +6,7 @@ module.exports={ Refresh };
 let data;
 
 Begginer();
+
 // it is being called by Begginer or when someone activates a new automation for a city
 async function RepeaterSpecific(user,world,city){
     if(!data?.[user]?.towns?.[world]){ return; }
@@ -15,7 +16,7 @@ async function RepeaterSpecific(user,world,city){
     let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
 
     let nextFarm = claimData.nextFarm - new Date().getTime();
-    nextFarm = nextFarm + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
+    nextFarm = nextFarm + (5+Math.floor(Math.random() * 6)*1000) + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
     console.log("now= " +new Date(),"nextFarm= " + new Date(new Date().getTime() + nextFarm));   
     setTimeout( RepeaterSpecific, nextFarm, user,world,city );
 }
@@ -32,7 +33,7 @@ async function Begginer(){
             for(let city in data[user].towns[world]){
                 let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
                 let nextFarm = claimData.nextFarm - new Date().getTime();
-                nextFarm = nextFarm + 1000 + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
+                nextFarm = nextFarm + (5+Math.floor(Math.random() * 6)*1000) + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
                 console.log("now= " +new Date(),"nextFarm= " + new Date(new Date().getTime() + nextFarm));
                 setTimeout( RepeaterSpecific, nextFarm, user, world, city );
             }
