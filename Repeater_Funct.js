@@ -11,9 +11,19 @@ Begginer();
 async function RepeaterSpecific(user,world,city){
     if(!data?.[user]?.towns?.[world]){ return; }
 
-    let login = await Login(data[user].username,data[user].psw);
-    let playerLogin = await PlayerLogin(login);
-    let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
+    let playerLoginCookies;
+    if(data[user].playerLoginCookies){
+        playerLoginCookies = data[user].playerLoginCookies;
+        console.log("using playerLoginCookies ")
+    }
+    else {
+        let login = await Login(data[user].username,data[user].psw);
+        playerLoginCookies = await PlayerLogin(login);
+        data[user].playerLoginCookies = playerLoginCookies;
+        RedisSet("jobs", data );
+        console.log("Creating new playerLoginCookies ")
+    }
+    let claimData=await Farming(playerLoginCookies,world,data[user].towns[world][city]);
 
     let nextFarm = claimData.nextFarm - new Date().getTime();
     nextFarm = nextFarm + (5+Math.floor(Math.random() * 6)*1000) + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
@@ -27,11 +37,21 @@ async function Begginer(){
     if(!Object.keys(data ?? 0).length){ return; }
     
     for(let user in data){
-        let login = await Login(data[user].username,data[user].psw);
-        let playerLogin = await PlayerLogin(login);
+        let playerLoginCookies;
+        if(data[user].playerLoginCookies){
+            playerLoginCookies = data[user].playerLoginCookies;
+            console.log("using playerLoginCookies ");
+        }
+        else {
+            let login = await Login(data[user].username,data[user].psw);
+            playerLoginCookies = await PlayerLogin(login);
+            data[user].playerLoginCookies = playerLoginCookies;
+            RedisSet("jobs", data );
+            console.log("Creating new playerLoginCookies ")
+        }
         for( let world in data[user].towns){
             for(let city in data[user].towns[world]){
-                let claimData=await Farming(playerLogin,world,data[user].towns[world][city]);
+                let claimData=await Farming(playerLoginCookies,world,data[user].towns[world][city]);
                 let nextFarm = claimData.nextFarm - new Date().getTime();
                 nextFarm = nextFarm + (5+Math.floor(Math.random() * 6)*1000) + Math.floor(Math.random()* data[user].towns[world][city].extraTime +1) * 1000  ;
                 console.log("now= " +new Date(),"nextFarm= " + new Date(new Date().getTime() + nextFarm));

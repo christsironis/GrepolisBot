@@ -137,6 +137,7 @@ async function WorldLogin(data,currentWorld) {
 		let ts=data.ts;
 		let worlds=data.worlds;
 		let tid;
+		let sessId;
 		let towns={};
 
 

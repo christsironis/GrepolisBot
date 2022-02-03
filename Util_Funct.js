@@ -11,22 +11,27 @@ async function authenticate(req, res, next) {
 	}
 	let username = req.body.username.toLowerCase();
 	let psw = req.body.psw;
-	let redisData = await RedisGet("jobs");
-	console.log(redisData);
-	redisData = redisData?.[username];
-	let grepUser = await Login(username,psw);
-	if(grepUser.error){
-		res.locals.status="The email or password is wrong try again using your Grepolis account email and password";
-		res.render('login.hbs');
-		return;
+	let data = await RedisGet("jobs") ?? {};
+	console.log(data);
+	redisData = data?.[username];
+	let userInfo = redisData?.playerLoginCookies;
+	if(!userInfo){
+		let grepUser = await Login(username,psw);
+		if(grepUser.error){
+			res.locals.status="The email or password is wrong try again using your Grepolis account email and password";
+			res.render('login.hbs');
+			return;
+		}
+		userInfo = await PlayerLogin(grepUser);
+		if(userInfo.error){
+			res.locals.status= userInfo.error ;
+			res.render('login.hbs');
+			return;
+		}
+	}else{
+		console.log("using playerLoginCookies ")
 	}
-	let userInfo = await PlayerLogin(grepUser);
-	if(userInfo.error){
-		res.locals.status= userInfo.error ;
-		res.render('login.hbs');
-		return;
-	}
-	
+
 	for(let worldId of userInfo.worlds){
 		let townsForWorld = await WorldLogin(userInfo,worldId);
 		if(townsForWorld.error) {continue;}
@@ -74,7 +79,7 @@ async function setAutomation(req, res, next){
 					delete alreadyEx[username].towns[worldId][townId];
 				}
 				// console.log("alreadyEx after deletion= ",alreadyEx[username].towns)
-			} else{
+			} else{console.log(alreadyEx)
 				alreadyEx[username].towns[worldId]= { ...alreadyEx[username].towns[worldId], ...req.body[username].towns[worldId] }
 				console.log("deuterh periptwsh = ",alreadyEx[username]);
 			}
